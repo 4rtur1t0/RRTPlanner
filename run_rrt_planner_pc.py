@@ -34,33 +34,29 @@ has always a movement plan to carry out.
 @Time: April 2024
 """
 from keyframe.keyframe import KeyFrame
-from rrtplanner.rrtplannermg import RRTPlannerMG
+from rrtplanner.rrtplannerPC import RRTPlannerPC
 
 
 def find_path():
+    # simulation: must subscribe to lidar and compute traversability
     pointcloud = KeyFrame('dataset/robot0/lidar/001.pcd')
-    pointcloud.draw_cloud()
-    # define the dimensions +-X, +-Y of the map
-    dimensions = [30, 30]
-    # start and end position
-    start = [-8, -8]
-    goals = [[10, 15],
-             [15, 15],
-             [18, 18]]
-    # define a list of obstacles as (x, y, Radius)
-    obstacles = [[0, 0, 6],
-                 [0, 15, 6],
-                 [5, 5, 6],
-                 [10, -5, 6],
-                 [15, -10, 6],
-                 [0, -3, 6]]
+    # pointcloud.draw_cloud()
+    points_traversable, points_obstacle = pointcloud.compute_traversability()
+
+    # start and goals
+    start = [0, 0, 0]
+    # goals should be projected to the local reference system from the global UTM coordinates
+    goals = [[10, 15, 0],
+             [15, 15, 0],
+             [18, 18, 0]]
     # Create Multiple Goal RRT planner
-    planner = RRTPlannerMG(start=start,
+    planner = RRTPlannerPC(start=start,
                            goals=goals,
-                           dimensions=dimensions,
-                           obstacles=obstacles,
+                           pc_traversable=points_traversable,
+                           pc_obstacle=points_obstacle,
                            epsilon=1,
                            max_nodes=10000)
+    planner.plot_tree(show=True)
     planner.build_rrt()
     planner.print_info()
     path_found = planner.get_path()

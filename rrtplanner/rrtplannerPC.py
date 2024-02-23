@@ -35,30 +35,39 @@ class RRTPlannerPC():
     A Basic RRT Planner in a 2D space for holonomic robots.
     RRTPlannerMG considers multiple-goals, instead of just one as the basic RRT.
     """
-    def __init__(self, start, goals, dimensions, obstacles, epsilon, max_nodes):
+    def __init__(self, start, goals, pc_traversable, pc_obstacle, epsilon, max_nodes):
         self.goals = np.array(goals)
         self.start = np.array(start)
         self.max_nodes = max_nodes
         self.epsilon = epsilon
-        # space, +- dimensions in XY
-        self.dim = np.array(dimensions)
-        # a set of circle-like obstacles, (x, y, R)
-        self.obstacles = np.array(obstacles)
+        # a set of 3D traversable points
+        self.pc_traversable = np.array(pc_traversable)
+        # a set of 3D points considered non-traversable
+        self.pc_obstacles = np.array(pc_obstacle)
         # stores the nodes of the tree
         self.tree = []
         # stores info on the result of the algorithm
         self.goal_reached = False
         self.iterations_performed = 0
 
-        if self.in_obstacle(self.start):
-            raise Exception('The start coordinates are inside the obstacle space')
+        self.robot_radius = 0.7
 
-        for i in range(self.goals.shape[0]):
-            if self.in_obstacle(self.goals[i]):
-                raise Exception('One of the goals is inside the obstacle space')
+        #if self.in_obstacle(self.start):
+        #    raise Exception('The start coordinates are inside the obstacle space')
 
-        # add root node to tree: start the root of the tree
+        # The goals may be in the obstacle space
+        # for i in range(self.goals.shape[0]):
+        #     if self.in_obstacle(self.goals[i]):
+        #         raise Exception('One of the goals is inside the obstacle space')
+
+        # add the root node of the tree
         self.add_vertex(parent_id=0, coordinates=start)
+        # this is a typical special case when working with LiDARs, the nearest points to the robot
+        # are at a specified distance. We are adding
+        points = self.nearest_traversable_points(q=self.start, max_dist=3, Nmax=10)
+        # yes, add, the points to the root node
+        for i in range(points.shape[0]):
+            self.add_vertex(parent_id=self.tree[0].id, coordinates=points[i, :])
 
     def build_rrt(self):
         for k in range(self.max_nodes):
@@ -69,7 +78,7 @@ class RRTPlannerPC():
                 self.goal_reached = True
                 self.iterations_performed = k
                 break
-            # self.plot_tree()
+            self.plot_tree()
 
     def add_vertex(self, parent_id, coordinates, reached=False):
         # new id depending on the number of nodes
@@ -79,21 +88,30 @@ class RRTPlannerPC():
 
     def random_config(self):
         """
-        This generates a new random configuration
+        This generates a new random configuration.
+        In this particular problem, a random sample is selected from the list of traversable points.
         :return:
         """
-        x = -self.dim[0] + 2*self.dim[0]*np.random.rand()
-        y = -self.dim[1] + 2*self.dim[1] * np.random.rand()
-        return np.array([x, y])
+        N = self.pc_traversable.shape[0]
+        i = np.random.choice(N, 1)[0]
+        return self.pc_traversable[i, :]
 
     def extend(self, qrand):
         """
         The extend operation of the tree.
+        In this case, given qrand, the closest node to the tree is found. This node is qc
+        Then, a set of points within a radius epsilon around qc are found.
+        Finally, the closest point to the line qrand -- qc
         :param qrand:
         :return:
         """
-        inear, qnear = self.nearest_neighbour(qrand)
+        # given qrand, find the closest node of the tree
+        inear, qnear = self.nearest_neighbour_in_tree(qrand)
+        # this propagates a point from qnear to qrand at a distance epsilon
         qnew = self.new_config(qnear, qrand)
+        # now, important, select a real point in the traversable space.
+        inew, qnew = self.nearest_neighbour(self.pc_traversable, qnew)
+        # now, check if qnew is next to an obstacle
         if not self.in_obstacle(qnew):
             # if not in collision, add node to the tree
             reached = self.reached_goal(qnew)
@@ -105,30 +123,47 @@ class RRTPlannerPC():
     def new_config(self, qnear, qrand):
         """
         Computes a new configuration between qnear and qrand that is placed at an epsilon distance from qnear
-        :param qnear:
-        :param qrand:
+        :param qnear: a node in the tree
+        :param qrand: a random configuration
         :return:
         """
         ds = qrand - qnear
-        phi = np.arctan2(ds[1], ds[0])
-        du = np.array([np.cos(phi), np.sin(phi)])
-        qnew = qnear + self.epsilon*du
-        return qnew
+        n = np.linalg.norm(ds)
+        if n > 0:
+            du = ds/n
+            qnew = qnear + self.epsilon * du
+            return qnew
+        return qnear
 
     def in_obstacle(self, q):
         """
-        Returns True if q is in the obstacle space, false elsewise
+        Returns True if q is in the obstacle space, false elsewise.
+                Here, checking whether there are points in pc_obstacle within a radius R of the robot
         :param q:
         :return:
         """
-        for i in range(len(self.obstacles)):
-            obstacle = self.obstacles[i]
-            d = np.linalg.norm(q-obstacle[0:2])
-            if d < obstacle[2]:
-                return True
+        index, coords = self.nearest_neighbour(self.pc_obstacles, q)
+        d = np.linalg.norm(q-coords)
+        if d < self.robot_radius:
+            return True
         return False
 
-    def nearest_neighbour(self, qrand):
+    def nearest_traversable_points(self, q, max_dist, Nmax):
+        """
+        Returns a set of Nmax points in the traversable set within max_dist distance.
+        The points are sampled so that the max number is K.
+        :param qrand:
+        :return:
+        """
+        dists = np.linalg.norm(self.pc_traversable - q, axis=1)
+        index_within = dists <= max_dist
+        points_within = self.pc_traversable[index_within, :]
+        if points_within.shape[0] > Nmax:
+            indices_sampled = np.random.choice(points_within.shape[0], size=Nmax, replace=False)
+            return points_within[indices_sampled, :]
+        return points_within
+
+    def nearest_neighbour_in_tree(self, qrand):
         """
         Returns the index in the tree that is nearest to qrand.
         Also returns the coordinates of the nearest index
@@ -143,6 +178,17 @@ class RRTPlannerPC():
         dists = np.linalg.norm(coords - qrand, axis=1)
         index_nn = np.argmin(dists)
         return index_nn, self.tree[index_nn].coordinates
+
+    def nearest_neighbour(self, points, q):
+        """
+        Returns the index in the tree that is nearest to qrand.
+        Also returns the coordinates of the nearest index
+        :param qrand:
+        :return:
+        """
+        dists = np.linalg.norm(points - q, axis=1)
+        index_nn = np.argmin(dists)
+        return index_nn, points[index_nn, :]
 
     def closest_node_to_goals(self):
         """
@@ -246,25 +292,28 @@ class RRTPlannerPC():
         print('GOAL REACHED: ', self.goal_reached)
         print(30 * '*')
 
-    def plot_tree(self, show=False):
-        # plot obstacles
-        theta = np.linspace(0, 2 * np.pi, 150)
-        xobs = np.array([])
-        yobs = np.array([])
-        for i in range(len(self.obstacles)):
-            obstacle = self.obstacles[i]
-            x = obstacle[2] * np.cos(theta) + obstacle[0]
-            y = obstacle[2] * np.sin(theta) + obstacle[1]
-            xobs = np.append(xobs, x)
-            yobs = np.append(yobs, y)
-        obspoints = np.column_stack((xobs, yobs))
+    def plot_tree(self, show_obstacles=False, show_traversable=False, show=False):
+        """
+        Plots the 3D tree, the obstacles and traversable points
+        """
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+        if show_obstacles:
+            # plot obstacles
+            ax.scatter(self.pc_obstacles[:, 0], self.pc_obstacles[:, 1], self.pc_obstacles[:, 2],
+                   marker='.', color='red')
+        if show_traversable:
+            # plot traversable points
+            ax.scatter(self.pc_traversable[:, 0], self.pc_traversable[:, 1], self.pc_traversable[:, 2],
+                   marker='.', color='green')
+
         # plot the edges of the tree
         for i in range(len(self.tree)):
             coords = self.tree[i].coordinates
             parent_id = self.tree[i].parent_id
             coords_parent = self.tree[parent_id].coordinates
             c = np.vstack((coords, coords_parent))
-            plt.plot(c[:, 0], c[:, 1], color='magenta')
+            ax.scatter(c[:, 0], c[:, 1], c[:, 2], marker='.', color='magenta')
         # plot vertices (node coordinates) as scatter
         coords = []
         # leave out i=0, since it corresponds to the start node
@@ -272,16 +321,14 @@ class RRTPlannerPC():
             coords.append(self.tree[i].coordinates)
         coords = np.array(coords)
 
-        # plot obstacles
-        plt.scatter(obspoints[:, 0], obspoints[:, 1], color='black')
         # plot start
-        plt.scatter(self.start[0], self.start[1], color='green')
+        plt.scatter(self.start[0], self.start[1], self.start[2], marker='s', color='green')
         # plot goals
         for i in range(self.goals.shape[0]):
             goal = self.goals[i]
-            plt.scatter(goal[0], goal[1], color='red')
+            plt.scatter(goal[0], goal[1], goal[2], color='red')
         # lastly plot all nodes in the tree
-        plt.scatter(coords[:, 0], coords[:, 1], color='blue')
+        plt.scatter(coords[:, 0], coords[:, 1], coords[:, 2], marker='s', color='blue')
         if show:
             plt.show()
 
