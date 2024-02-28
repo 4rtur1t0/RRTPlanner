@@ -39,29 +39,38 @@ from rrtplanner.rrtplannerPC import RRTPlannerPC
 
 def find_path():
     # simulation: must subscribe to lidar and compute traversability
-    pointcloud = KeyFrame('dataset/robot0/lidar/001.pcd')
+    pointcloud = KeyFrame('dataset/robot0/lidar/001.pcd', voxel_size=0.3)
     # pointcloud.draw_cloud()
-    points_traversable, points_obstacle = pointcloud.compute_traversability()
+    points_traversable, points_obstacle = pointcloud.compute_traversability(Z=0.1)
 
     # start and goals
     start = [0, 0, 0]
     # goals should be projected to the local reference system from the global UTM coordinates
-    goals = [[10, 15, 0],
-             [15, 15, 0],
-             [18, 18, 0]]
+    # goals = [[10, 15, 0],
+    #          [15, 15, 0],
+    #          [18, 18, 0]]
+    goals = [[10, -5, 0],
+             [15, -5, 0],
+             [20, -5, 0]]
     # Create Multiple Goal RRT planner
     planner = RRTPlannerPC(start=start,
                            goals=goals,
                            pc_traversable=points_traversable,
                            pc_obstacle=points_obstacle,
-                           epsilon=1,
-                           max_nodes=10000)
-    planner.plot_tree(show=True)
+                           epsilon=0.5,
+                           max_nodes=500)
+
+    # planner.plot_obstacle()
+    # planner.plot_traversable()
+    # planner.plot_all()
+
+    # planner.plot_tree2d(show=True)
     planner.build_rrt()
     planner.print_info()
     path_found = planner.get_path()
     print('Optimal path: ', path_found)
-    planner.plot_tree()
+    # planner.plot_tree()
+    planner.plot_tree2d(show_obstacles=True)
     planner.plot_solution(show=True)
     print('FINISHED')
 
