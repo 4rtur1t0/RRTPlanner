@@ -33,10 +33,10 @@ has always a movement plan to carry out.
 @Authors: Arturo Gil
 @Time: April 2024
 """
-from keyframe.keyframe import KeyFrame
-from rrtplanner.rrtplannerPC import RRTPlannerPC
 import numpy as np
 import matplotlib.pyplot as plt
+from keyframe.keyframe import KeyFrame
+from rrtplanner.rrtplannerPC import RRTPlannerPC
 from rrtplanner.trajectorysmoother import TrajectorySmoother
 
 

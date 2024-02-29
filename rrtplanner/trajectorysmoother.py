@@ -3,7 +3,7 @@ Trajectory smoother
 """
 from scipy.interpolate import splprep, splev
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 
 class TrajectorySmoother():
@@ -32,10 +32,4 @@ class TrajectorySmoother():
         # x_knots, y_knots, z_knots = splev(tck[0], tck)
         u_fine = np.linspace(0, 1, num_traj_points)
         x_fine, y_fine, z_fine = splev(u_fine, tck)
-
-        # fig2 = plt.figure(2)
-        # ax3d = fig2.add_subplot(111, projection='3d')
-        # ax3d.plot(x_fine, y_fine, z_fine, 'g')
-        # fig2.show()
-        # plt.show()
         return np.column_stack((x_fine, y_fine, z_fine))

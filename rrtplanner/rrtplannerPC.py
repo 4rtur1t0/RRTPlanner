@@ -28,7 +28,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from rrtplanner.tree import Tree
-from rrtplanner.rrtplanner import RRTPlanner
+# from rrtplanner.rrtplanner import RRTPlanner
 
 REACHED = 0
 ADVANCED = 1
