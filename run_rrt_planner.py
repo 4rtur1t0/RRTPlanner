@@ -163,7 +163,7 @@ def find_path_RRT_connect_to_goal():
 if __name__ == "__main__":
     # please uncomment as necessary
     # three RRT variants are here tested
-    # find_path_RRT_basic()
-    # find_path_RRT_connect()
+    find_path_RRT_basic()
+    find_path_RRT_connect()
     find_path_RRT_connect_to_goal()
 

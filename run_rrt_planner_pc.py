@@ -197,7 +197,7 @@ def find_path_RRT_connect_to_goal_point_cloud():
 
 
 if __name__ == "__main__":
-    # find_path_RRT_basic_point_cloud()
-    # find_path_RRT_connect_point_cloud()
+    find_path_RRT_basic_point_cloud()
+    find_path_RRT_connect_point_cloud()
     find_path_RRT_connect_to_goal_point_cloud()
 
