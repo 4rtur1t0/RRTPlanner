@@ -31,8 +31,10 @@ Below, an installation on a virtual environment is presented
 >> sudo apt install git
 >> git clone https://github.com/4rtur1t0/RRTPlanner
 >> virtualenv venv
->> venv/bin/pip install -r ../../../RRTPlanner/requirements.txt
+>> venv/bin/pip install -r RRTPlanner/requirements.txt
 ```
+
+Please configure venv/bin/python as your python interpreter.
 
 
 
