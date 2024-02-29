@@ -28,9 +28,11 @@ The robot is considered a point. The robot is inside an obstacle if the point li
 """
 from rrtplanner.rrtplanner import RRTPlanner
 import matplotlib.pyplot as plt
+from rrtplanner.trajectorysmoother import TrajectorySmoother
 
 
 def find_path_RRT_basic():
+    smoother = TrajectorySmoother(s=3)
     # define the dimensions +-X, +-Y of the map
     dimensions = [20, 20]
     # start and end position
@@ -54,19 +56,23 @@ def find_path_RRT_basic():
     planner.print_info()
     # retrieve found path path from tree
     path_found = planner.get_solution_path(tree)
-    print('Optimal path: ', path_found)
+    print('Path found: ', path_found)
+    # optionally, find a smooth path
+    path_smooth = smoother.smooth2D(path_found)
+    print('Smoothed path: ', path_found)
     # plot the tree and solution
     tree.plot()
-    tree.plot_solution(path=path_found)
+    tree.plot_path(path=path_found, color='cyan')
+    tree.plot_path(path=path_smooth, color='green')
     # plot obstacles, start and goal
     planner.plot()
-
     # update plots
     plt.show(block=True)
     print('FINISHED')
 
 
 def find_path_RRT_connect():
+    smoother = TrajectorySmoother(s=3)
     # define the dimensions +-X, +-Y of the map
     dimensions = [30, 30]
     # start and end position
@@ -92,10 +98,16 @@ def find_path_RRT_connect():
     # retrieve found paths from trees
     path_found = planner.get_solution_path_from_two_trees(treeA, treeB)
     print('Optimal path: ', path_found)
+
+    # optionally, find a smooth path
+    path_smooth = smoother.smooth2D(path_found)
+    print('Smoothed path: ', path_smooth)
+
     # plot the tree and solution
     treeA.plot()
     treeB.plot()
-    treeA.plot_solution(path=path_found)
+    treeA.plot_path(path=path_found, color='cyan')
+    treeA.plot_path(path=path_smooth, color='green')
     # plot obstacles, start and goal
     planner.plot()
 
@@ -105,6 +117,7 @@ def find_path_RRT_connect():
 
 
 def find_path_RRT_connect_to_goal():
+    smoother = TrajectorySmoother(s=3)
     # define the dimensions +-X, +-Y of the map
     dimensions = [30, 30]
     # start and end position
@@ -130,9 +143,15 @@ def find_path_RRT_connect_to_goal():
     # retrieve found paths from trees
     path_found = planner.get_solution_path(tree)
     print('Optimal path: ', path_found)
+
+    # optionally, find a smooth path
+    path_smooth = smoother.smooth2D(path_found)
+    print('Smoothed path: ', path_smooth)
+
     # plot the tree and solution
     tree.plot()
-    tree.plot_solution(path=path_found)
+    tree.plot_path(path=path_found, color='cyan')
+    tree.plot_path(path=path_smooth, color='green')
     # plot obstacles, start and goal
     planner.plot()
 
@@ -144,7 +163,7 @@ def find_path_RRT_connect_to_goal():
 if __name__ == "__main__":
     # please uncomment as necessary
     # three RRT variants are here tested
-    find_path_RRT_basic()
-    find_path_RRT_connect()
+    # find_path_RRT_basic()
+    # find_path_RRT_connect()
     find_path_RRT_connect_to_goal()
 

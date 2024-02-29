@@ -71,7 +71,7 @@ class Tree():
             print('ID, reached: ', self.tree[i].id, self.tree[i].goal_reached)
         print(30 * '*')
 
-    def plot(self, show=False):
+    def plot(self):
         # plot the edges of the tree
         for i in range(len(self.tree)):
             coords = self.tree[i].coordinates
@@ -81,15 +81,14 @@ class Tree():
             plt.plot(c[:, 0], c[:, 1], color='magenta')
         # plot vertices (node coordinates) as scatter
         coords = self.get_coordinates()
-        plt.scatter(coords[:, 0], coords[:, 1], color='blue')
-        # plt.show()
+        plt.scatter(coords[:, 0], coords[:, 1], color='magenta')
 
-    def plot_solution(self, path):
+    def plot_path(self, path, color='cyan'):
         solution_path = np.array(path)
         K = solution_path.shape[0]
         for i in range(K-1):
             coords = solution_path[i, :]
             coordsn = solution_path[i+1, :]
             c = np.vstack((coords, coordsn))
-            plt.plot(c[:, 0], c[:, 1], color='cyan')
-
+            plt.plot(c[:, 0], c[:, 1], color=color)
+        plt.scatter(path[:, 0], path[:, 1], color=color)

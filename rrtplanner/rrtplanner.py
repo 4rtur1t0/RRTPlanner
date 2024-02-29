@@ -98,11 +98,14 @@ class RRTPlanner():
             tA, tB = self.swap(tA, tB)
         return t1, t2
 
-    def build_rrt_connect_to_goal(self):
+    def build_rrt_connect_to_goal(self, try_obvious=True):
         """
-        Programmed using the same names as in:
         This is a simplified version of the RRT-connect algorithm using a single
-        tree. The connect operation always tries to connect the tree to the goal.
+        tree (see references). The connect operation always tries to connect the tree to the goal.
+        The try_obvious option, directs the search to the goal in the first iteration. This allows
+        to have nice behaviour, since, whenever the space is free, the obvious line is found between
+        the start and goal positions.
+
         RRT-connect: An efficient approach to single-query path planning.
         J. J. Kuffner and S. M. LaValle.
         In Proceedings IEEE International Conference on Robotics and Automation,
@@ -113,7 +116,10 @@ class RRTPlanner():
         tree = Tree(self.start)
         for k in range(self.max_nodes):
             print('Iteration: ', k)
-            qrand = self.random_config()
+            if k == 0 and try_obvious:
+                qrand = self.goal
+            else:
+                qrand = self.random_config()
             result, qnew = self.extend(tree, qrand)
             if not (result == TRAPPED):
                 result, qfinal = self.connect(tree, self.goal)
@@ -291,5 +297,4 @@ class RRTPlanner():
         plt.scatter(obspoints[:, 0], obspoints[:, 1], color='black')
         plt.scatter(self.start[0], self.start[1], color='green')
         plt.scatter(self.goal[0], self.goal[1], color='red')
-        # if show:
-        #     plt.show()
+
