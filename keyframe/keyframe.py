@@ -11,6 +11,7 @@ class KeyFrame():
         self.pointcloud = o3d.io.read_point_cloud(filename, print_progress=True)
 
     def from_points(self, points):
+        self.pointcloud = o3d.geometry.PointCloud()
         self.pointcloud.points = o3d.utility.Vector3dVector(points)
 
     def save_pointcloud(self, output_filename):

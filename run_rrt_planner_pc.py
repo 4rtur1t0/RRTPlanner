@@ -48,12 +48,13 @@ def find_path_RRT_basic_point_cloud():
                   [0, 0, 1, 0.8],
                   [0, 0, 0, 1]])
     # simulation: must subscribe to lidar and compute traversability
-    pointcloud = KeyFrame('dataset/robot0/lidar/001.pcd')
-    pointcloud.downwample(voxel_size=0.2)
-    pointcloud.transform(T)
+    pcl = KeyFrame()
+    pcl.from_file('dataset/robot0/lidar/001.pcd')
+    pcl.downwample(voxel_size=0.2)
+    pcl.transform(T)
     # pointcloud.draw_cloud()
     # a simple classification in traversable/non-traversable if any points surpasses Z
-    points_traversable, points_obstacles = pointcloud.compute_traversability(Z=0.1)
+    points_traversable, points_obstacles = pcl.compute_traversability(Z=0.1)
 
     # start and goals
     start = [0, 0, 0]
@@ -98,12 +99,13 @@ def find_path_RRT_connect_point_cloud():
                   [0, 0, 1, 0.8],
                   [0, 0, 0, 1]])
     # simulation: must subscribe to lidar and compute traversability
-    pointcloud = KeyFrame('dataset/robot0/lidar/001.pcd')
-    pointcloud.downwample(voxel_size=0.2)
-    pointcloud.transform(T)
+    pcl = KeyFrame()
+    pcl.from_file('dataset/robot0/lidar/001.pcd')
+    pcl.downwample(voxel_size=0.2)
+    pcl.transform(T)
     # pointcloud.draw_cloud()
     # a simple classification in traversable/non-traversable if any points surpasses Z
-    points_traversable, points_obstacles = pointcloud.compute_traversability(Z=0.1)
+    points_traversable, points_obstacles = pcl.compute_traversability(Z=0.1)
 
     # start and goals
     start = [0, 0, 0]
@@ -151,18 +153,19 @@ def find_path_RRT_connect_to_goal_point_cloud():
                   [0, 0, 1, 0.8],
                   [0, 0, 0, 1]])
     # simulation: must subscribe to lidar and compute traversability
-    pointcloud = KeyFrame('dataset/robot0/lidar/005.pcd')
-    pointcloud.downwample(voxel_size=0.3)
-    pointcloud.transform(T)
-    pointcloud.draw_cloud()
+    pcl = KeyFrame()
+    pcl.from_file('dataset/robot0/lidar/005.pcd')
+    # pcl.from_points(np.asarray(pcl.pointcloud.points))
+    pcl.downwample(voxel_size=0.3)
+    pcl.transform(T)
+    # pcl.draw_cloud()
     # a simple classification in traversable/non-traversable if any points surpasses Z
-    points_traversable, points_obstacles = pointcloud.compute_traversability(Z=0.15)
-
+    points_traversable, points_obstacles = pcl.compute_traversability(Z=0.15)
     # start and goals
     start = [0, 0, 0]
     # goals should be projected to the local reference system from the global UTM coordinates
     # goal = [5, 0, 0]
-    goal = [-4.5, -4.5, 0]
+    goal = [11, 8, 0]
     # Create Multiple Goal RRT planner
     planner = RRTPlannerPC(start=start,
                            goal=goal,
