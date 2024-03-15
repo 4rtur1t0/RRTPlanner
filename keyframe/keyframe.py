@@ -4,8 +4,17 @@ import open3d as o3d
 
 
 class KeyFrame():
-    def __init__(self, filename):
+    def __init__(self):
+        self.pointcloud = None
+
+    def from_file(self, filename):
         self.pointcloud = o3d.io.read_point_cloud(filename, print_progress=True)
+
+    def from_points(self, points):
+        self.pointcloud.points = o3d.utility.Vector3dVector(points)
+
+    def save_pointcloud(self, output_filename):
+        o3d.io.write_point_cloud(output_filename, self.pointcloud)
 
     def draw_cloud(self):
         o3d.visualization.draw_geometries([self.pointcloud],

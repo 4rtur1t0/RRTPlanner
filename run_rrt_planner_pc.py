@@ -152,17 +152,17 @@ def find_path_RRT_connect_to_goal_point_cloud():
                   [0, 0, 0, 1]])
     # simulation: must subscribe to lidar and compute traversability
     pointcloud = KeyFrame('dataset/robot0/lidar/005.pcd')
-    pointcloud.downwample(voxel_size=0.2)
+    pointcloud.downwample(voxel_size=0.3)
     pointcloud.transform(T)
-    # pointcloud.draw_cloud()
+    pointcloud.draw_cloud()
     # a simple classification in traversable/non-traversable if any points surpasses Z
-    points_traversable, points_obstacles = pointcloud.compute_traversability(Z=0.1)
+    points_traversable, points_obstacles = pointcloud.compute_traversability(Z=0.15)
 
     # start and goals
     start = [0, 0, 0]
     # goals should be projected to the local reference system from the global UTM coordinates
-    goal = [10, 8, 0]
-    # goal = [-8, -8.5, 0]
+    # goal = [5, 0, 0]
+    goal = [-4.5, -4.5, 0]
     # Create Multiple Goal RRT planner
     planner = RRTPlannerPC(start=start,
                            goal=goal,
@@ -197,7 +197,7 @@ def find_path_RRT_connect_to_goal_point_cloud():
 
 
 if __name__ == "__main__":
-    find_path_RRT_basic_point_cloud()
-    find_path_RRT_connect_point_cloud()
+    # find_path_RRT_basic_point_cloud()
+    # find_path_RRT_connect_point_cloud()
     find_path_RRT_connect_to_goal_point_cloud()
 
