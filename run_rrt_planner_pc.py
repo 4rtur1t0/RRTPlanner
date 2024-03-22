@@ -154,11 +154,17 @@ def find_path_RRT_connect_to_goal_point_cloud():
                   [0, 0, 0, 1]])
     # simulation: must subscribe to lidar and compute traversability
     pcl = KeyFrame()
-    pcl.from_file('dataset/robot0/lidar/005.pcd')
+    pcl.from_file('dataset/robot0/lidar/pruebacoppelia.pcd')
     # pcl.from_points(np.asarray(pcl.pointcloud.points))
-    pcl.downwample(voxel_size=0.3)
-    pcl.transform(T)
+    pcl.downsample(voxel_size=0.5)
+
     # pcl.draw_cloud()
+    pcl.draw_cloud_plt()
+
+    pcl.transform(T)
+
+    pcl.draw_cloud_plt()
+
     # a simple classification in traversable/non-traversable if any points surpasses Z
     points_traversable, points_obstacles = pcl.compute_traversability(Z=0.15)
     # start and goals

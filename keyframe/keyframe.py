@@ -1,5 +1,5 @@
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import open3d as o3d
 
 
@@ -24,7 +24,18 @@ class KeyFrame():
                                           lookat=[2.6172, 2.0475, 1.532],
                                           up=[-0.0694, -0.9768, 0.2024])
 
-    def downwample(self, voxel_size):
+    def draw_cloud_plt(self):
+        points = np.asarray(self.pointcloud.points)
+        plt.figure()
+        ax = plt.axes(projection="3d")
+
+        # Creating plot
+        ax.scatter3D(points[:, 0], points[:, 1], points[:, 2], color="blue")
+        plt.title("LiDAR points 3D")
+        # show plot
+        plt.show()
+
+    def downsample(self, voxel_size):
         self.pointcloud = self.pointcloud.voxel_down_sample(voxel_size=voxel_size)
 
     def transform(self, T):
